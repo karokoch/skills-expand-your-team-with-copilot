@@ -165,7 +165,7 @@ initial_activities = {
         "participants": ["william@mergington.edu", "jacob@mergington.edu"]
     },
     "Manga Maniacs": {
-        "description": "Dive into epic adventures, heartfelt friendships, and epic battles! From shonen action to shojo romance, discover the boundless worlds of Japanese manga and unleash your inner otaku!",
+        "description": "Dive into thrilling adventures, heartfelt friendships, and epic battles! From shonen action to shojo romance, discover the boundless worlds of Japanese manga and unleash your inner otaku!",
         "schedule": "Tuesdays, 5:00 PM - 6:00 PM",
         "schedule_details": {
             "days": ["Tuesday"],
