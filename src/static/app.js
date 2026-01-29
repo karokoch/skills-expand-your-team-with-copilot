@@ -520,23 +520,34 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     // Create social sharing buttons
-    const shareUrl = encodeURIComponent(window.location.href);
-    const shareTitle = encodeURIComponent(`Check out ${name} at Mergington High School!`);
-    const shareText = encodeURIComponent(`${name} - ${details.description} Schedule: ${formattedSchedule}`);
+    // Store activity name in a data attribute (will be properly escaped by textContent in the event handler)
+    const socialShareButtons = document.createElement("div");
+    socialShareButtons.className = "social-share-buttons";
     
-    const socialShareButtons = `
-      <div class="social-share-buttons">
-        <button class="share-button facebook-share" data-activity="${name}" data-share-type="facebook" title="Share on Facebook">
-          <span class="share-icon">f</span>
-        </button>
-        <button class="share-button twitter-share" data-activity="${name}" data-share-type="twitter" title="Share on Twitter">
-          <span class="share-icon">𝕏</span>
-        </button>
-        <button class="share-button email-share" data-activity="${name}" data-share-type="email" title="Share via Email">
-          <span class="share-icon">✉</span>
-        </button>
-      </div>
-    `;
+    const facebookButton = document.createElement("button");
+    facebookButton.className = "share-button facebook-share";
+    facebookButton.dataset.activity = name;
+    facebookButton.dataset.shareType = "facebook";
+    facebookButton.title = "Share on Facebook";
+    facebookButton.innerHTML = '<span class="share-icon">f</span>';
+    
+    const twitterButton = document.createElement("button");
+    twitterButton.className = "share-button twitter-share";
+    twitterButton.dataset.activity = name;
+    twitterButton.dataset.shareType = "twitter";
+    twitterButton.title = "Share on Twitter";
+    twitterButton.innerHTML = '<span class="share-icon">𝕏</span>';
+    
+    const emailButton = document.createElement("button");
+    emailButton.className = "share-button email-share";
+    emailButton.dataset.activity = name;
+    emailButton.dataset.shareType = "email";
+    emailButton.title = "Share via Email";
+    emailButton.innerHTML = '<span class="share-icon">✉</span>';
+    
+    socialShareButtons.appendChild(facebookButton);
+    socialShareButtons.appendChild(twitterButton);
+    socialShareButtons.appendChild(emailButton);
 
     activityCard.innerHTML = `
       ${tagHtml}
@@ -547,7 +558,6 @@ document.addEventListener("DOMContentLoaded", () => {
         <span class="tooltip-text">Regular meetings at this time throughout the semester</span>
       </p>
       ${capacityIndicator}
-      ${socialShareButtons}
       <div class="participants-list">
         <h5>Current Participants:</h5>
         <ul>
@@ -590,6 +600,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       </div>
     `;
+
+    // Insert social share buttons after capacity indicator
+    const capacityContainer = activityCard.querySelector(".capacity-container");
+    if (capacityContainer && capacityContainer.nextSibling) {
+      activityCard.insertBefore(socialShareButtons, capacityContainer.nextSibling);
+    } else if (capacityContainer) {
+      capacityContainer.parentNode.insertBefore(socialShareButtons, capacityContainer.nextSibling);
+    }
 
     // Add click handlers for delete buttons
     const deleteButtons = activityCard.querySelectorAll(".delete-participant");
@@ -714,7 +732,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const formattedSchedule = formatSchedule(activity);
     const url = window.location.href;
     const title = `Check out ${activityName} at Mergington High School!`;
-    const description = `${activityName} - ${activity.description}. Schedule: ${formattedSchedule}. ${activity.max_participants - activity.participants.length} spots left!`;
+    const spotsLeft = Math.max(0, activity.max_participants - activity.participants.length);
+    const description = `${activityName} - ${activity.description}. Schedule: ${formattedSchedule}. ${spotsLeft} spots left!`;
 
     switch (shareType) {
       case "facebook":
@@ -724,8 +743,8 @@ document.addEventListener("DOMContentLoaded", () => {
         break;
 
       case "twitter":
-        const twitterText = `${title} ${description}`;
-        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(twitterText)}&url=${encodeURIComponent(url)}`;
+        const twitterText = `${title} ${description} ${url}`;
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(twitterText)}`;
         window.open(twitterUrl, "_blank", "width=600,height=400");
         showMessage("Opening Twitter share dialog...", "info");
         break;
