@@ -61,10 +61,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark") {
       document.body.classList.add("dark-mode");
-      themeIcon.textContent = "☀️";
+      if (themeIcon) {
+        themeIcon.textContent = "☀️";
+      }
     } else {
       document.body.classList.remove("dark-mode");
-      themeIcon.textContent = "🌙";
+      if (themeIcon) {
+        themeIcon.textContent = "🌙";
+      }
     }
   }
 
@@ -73,14 +77,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const isDarkMode = document.body.classList.contains("dark-mode");
     
     // Update icon
-    themeIcon.textContent = isDarkMode ? "☀️" : "🌙";
+    if (themeIcon) {
+      themeIcon.textContent = isDarkMode ? "☀️" : "🌙";
+    }
     
     // Save preference to localStorage
     localStorage.setItem("theme", isDarkMode ? "dark" : "light");
   }
 
   // Event listener for theme toggle
-  themeToggle.addEventListener("click", toggleTheme);
+  if (themeToggle) {
+    themeToggle.addEventListener("click", toggleTheme);
+  }
 
   // Initialize filters from active elements
   function initializeFilters() {
