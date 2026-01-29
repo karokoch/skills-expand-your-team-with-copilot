@@ -519,6 +519,36 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
+    // Create social sharing buttons
+    // Store activity name in a data attribute (will be properly escaped by textContent in the event handler)
+    const socialShareButtons = document.createElement("div");
+    socialShareButtons.className = "social-share-buttons";
+    
+    const facebookButton = document.createElement("button");
+    facebookButton.className = "share-button facebook-share";
+    facebookButton.dataset.activity = name;
+    facebookButton.dataset.shareType = "facebook";
+    facebookButton.title = "Share on Facebook";
+    facebookButton.innerHTML = '<span class="share-icon">f</span>';
+    
+    const twitterButton = document.createElement("button");
+    twitterButton.className = "share-button twitter-share";
+    twitterButton.dataset.activity = name;
+    twitterButton.dataset.shareType = "twitter";
+    twitterButton.title = "Share on Twitter";
+    twitterButton.innerHTML = '<span class="share-icon">𝕏</span>';
+    
+    const emailButton = document.createElement("button");
+    emailButton.className = "share-button email-share";
+    emailButton.dataset.activity = name;
+    emailButton.dataset.shareType = "email";
+    emailButton.title = "Share via Email";
+    emailButton.innerHTML = '<span class="share-icon">✉</span>';
+    
+    socialShareButtons.appendChild(facebookButton);
+    socialShareButtons.appendChild(twitterButton);
+    socialShareButtons.appendChild(emailButton);
+
     activityCard.innerHTML = `
       ${tagHtml}
       <h4>${name}</h4>
@@ -571,10 +601,24 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
+    // Insert social share buttons after capacity indicator
+    const capacityContainer = activityCard.querySelector(".capacity-container");
+    if (capacityContainer && capacityContainer.nextSibling) {
+      activityCard.insertBefore(socialShareButtons, capacityContainer.nextSibling);
+    } else if (capacityContainer) {
+      capacityContainer.parentNode.insertBefore(socialShareButtons, capacityContainer.nextSibling);
+    }
+
     // Add click handlers for delete buttons
     const deleteButtons = activityCard.querySelectorAll(".delete-participant");
     deleteButtons.forEach((button) => {
       button.addEventListener("click", handleUnregister);
+    });
+
+    // Add click handlers for social share buttons
+    const shareButtons = activityCard.querySelectorAll(".share-button");
+    shareButtons.forEach((button) => {
+      button.addEventListener("click", handleShare);
     });
 
     // Add click handler for register button (only when authenticated)
@@ -673,6 +717,50 @@ document.addEventListener("DOMContentLoaded", () => {
       closeRegistrationModalHandler();
     }
   });
+
+  // Handle social sharing
+  function handleShare(event) {
+    const activityName = event.currentTarget.dataset.activity;
+    const shareType = event.currentTarget.dataset.shareType;
+    const activity = allActivities[activityName];
+    
+    if (!activity) {
+      console.error("Activity not found:", activityName);
+      return;
+    }
+
+    const formattedSchedule = formatSchedule(activity);
+    const url = window.location.href;
+    const title = `Check out ${activityName} at Mergington High School!`;
+    const spotsLeft = Math.max(0, activity.max_participants - activity.participants.length);
+    const description = `${activityName} - ${activity.description}. Schedule: ${formattedSchedule}. ${spotsLeft} spots left!`;
+
+    switch (shareType) {
+      case "facebook":
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        window.open(facebookUrl, "_blank", "width=600,height=400");
+        showMessage("Opening Facebook share dialog...", "info");
+        break;
+
+      case "twitter":
+        const twitterText = `${title} ${description} ${url}`;
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(twitterText)}`;
+        window.open(twitterUrl, "_blank", "width=600,height=400");
+        showMessage("Opening Twitter share dialog...", "info");
+        break;
+
+      case "email":
+        const subject = encodeURIComponent(title);
+        const body = encodeURIComponent(`${description}\n\nLearn more at: ${url}`);
+        const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
+        window.location.href = mailtoUrl;
+        showMessage("Opening email client...", "info");
+        break;
+
+      default:
+        console.error("Unknown share type:", shareType);
+    }
+  }
 
   // Create and show confirmation dialog
   function showConfirmationDialog(message, confirmCallback) {
