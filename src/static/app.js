@@ -519,6 +519,25 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
+    // Create social sharing buttons
+    const shareUrl = encodeURIComponent(window.location.href);
+    const shareTitle = encodeURIComponent(`Check out ${name} at Mergington High School!`);
+    const shareText = encodeURIComponent(`${name} - ${details.description} Schedule: ${formattedSchedule}`);
+    
+    const socialShareButtons = `
+      <div class="social-share-buttons">
+        <button class="share-button facebook-share" data-activity="${name}" data-share-type="facebook" title="Share on Facebook">
+          <span class="share-icon">f</span>
+        </button>
+        <button class="share-button twitter-share" data-activity="${name}" data-share-type="twitter" title="Share on Twitter">
+          <span class="share-icon">𝕏</span>
+        </button>
+        <button class="share-button email-share" data-activity="${name}" data-share-type="email" title="Share via Email">
+          <span class="share-icon">✉</span>
+        </button>
+      </div>
+    `;
+
     activityCard.innerHTML = `
       ${tagHtml}
       <h4>${name}</h4>
@@ -528,6 +547,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span class="tooltip-text">Regular meetings at this time throughout the semester</span>
       </p>
       ${capacityIndicator}
+      ${socialShareButtons}
       <div class="participants-list">
         <h5>Current Participants:</h5>
         <ul>
@@ -575,6 +595,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const deleteButtons = activityCard.querySelectorAll(".delete-participant");
     deleteButtons.forEach((button) => {
       button.addEventListener("click", handleUnregister);
+    });
+
+    // Add click handlers for social share buttons
+    const shareButtons = activityCard.querySelectorAll(".share-button");
+    shareButtons.forEach((button) => {
+      button.addEventListener("click", handleShare);
     });
 
     // Add click handler for register button (only when authenticated)
@@ -673,6 +699,49 @@ document.addEventListener("DOMContentLoaded", () => {
       closeRegistrationModalHandler();
     }
   });
+
+  // Handle social sharing
+  function handleShare(event) {
+    const activityName = event.currentTarget.dataset.activity;
+    const shareType = event.currentTarget.dataset.shareType;
+    const activity = allActivities[activityName];
+    
+    if (!activity) {
+      console.error("Activity not found:", activityName);
+      return;
+    }
+
+    const formattedSchedule = formatSchedule(activity);
+    const url = window.location.href;
+    const title = `Check out ${activityName} at Mergington High School!`;
+    const description = `${activityName} - ${activity.description}. Schedule: ${formattedSchedule}. ${activity.max_participants - activity.participants.length} spots left!`;
+
+    switch (shareType) {
+      case "facebook":
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        window.open(facebookUrl, "_blank", "width=600,height=400");
+        showMessage("Opening Facebook share dialog...", "info");
+        break;
+
+      case "twitter":
+        const twitterText = `${title} ${description}`;
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(twitterText)}&url=${encodeURIComponent(url)}`;
+        window.open(twitterUrl, "_blank", "width=600,height=400");
+        showMessage("Opening Twitter share dialog...", "info");
+        break;
+
+      case "email":
+        const subject = encodeURIComponent(title);
+        const body = encodeURIComponent(`${description}\n\nLearn more at: ${url}`);
+        const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
+        window.location.href = mailtoUrl;
+        showMessage("Opening email client...", "info");
+        break;
+
+      default:
+        console.error("Unknown share type:", shareType);
+    }
+  }
 
   // Create and show confirmation dialog
   function showConfirmationDialog(message, confirmCallback) {
